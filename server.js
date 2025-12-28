@@ -16,6 +16,14 @@ app.use(bodyParser.urlencoded({ extended: true, limit: '10mb' }));
 app.use(express.static(path.join(__dirname, 'client')));
 
 // Database Setup (PostgreSQL)
+if (!process.env.DATABASE_URL) {
+    console.error("--------------------------------------------------------------------------------");
+    console.error("FATAL ERROR: DATABASE_URL IS MISSING!");
+    console.error("Please go to Railway -> Node Service -> Variables and add DATABASE_URL");
+    console.error("--------------------------------------------------------------------------------");
+    process.exit(1); // Exit explicitly so Railway knows we failed
+}
+
 const pool = new Pool({
     connectionString: process.env.DATABASE_URL,
     ssl: {
