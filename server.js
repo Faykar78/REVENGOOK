@@ -157,9 +157,6 @@ app.get('/up', (req, res) => {
     res.status(200).send('OK');
 });
 
-// Ignore Favicon
-app.get('/favicon.ico', (req, res) => res.status(204).end());
-
 // Serve index.html for root
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'client', 'index.html'));
