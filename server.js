@@ -38,12 +38,21 @@ pool.query(`
     }
 });
 
-// Helper to get current timestamp
+// Helper to get current timestamp sentries (seconds)
 const getTimestamp = () => Math.floor(Date.now() / 1000);
 
 // API Route for module.php simulation
 app.post('/api/module', async (req, res) => {
     const { module_act, pad_code, pad_content } = req.body;
+
+    // --- CLEANUP (Lazy Expiration) ---
+    // Delete any notes older than 24 hours (86400 seconds)
+    // We do this asynchronously to not block the request
+    const cleanupCutoff = getTimestamp() - 86400;
+    pool.query('DELETE FROM notes WHERE updatedAt <= $1', [cleanupCutoff]).catch(err => {
+        console.error('Cleanup error:', err);
+    });
+    // ---------------------------------
 
     if (module_act === 'open') {
         if (!pad_code) {
@@ -51,7 +60,8 @@ app.post('/api/module', async (req, res) => {
         }
 
         try {
-            const { rows } = await pool.query('SELECT content, updatedAt FROM notes WHERE id = $1', [pad_code]);
+            // Filter: Only select notes updated within the last 24 hours
+            const { rows } = await pool.query('SELECT content, updatedAt FROM notes WHERE id = $1 AND updatedAt > $2', [pad_code, cleanupCutoff]);
 
             if (rows.length > 0) {
                 // Found existing pad
@@ -66,7 +76,7 @@ app.post('/api/module', async (req, res) => {
                     history: {}
                 });
             } else {
-                // New pad
+                // New pad (or Expired)
                 res.json({
                     noerror: true,
                     cryptedindex: 'idx_' + pad_code,
