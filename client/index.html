@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Revengook | Encrypted Vault</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <h1 class="glitch" data-text="REVENGOOK">REVENGOOK</h1>
+            <div class="status-indicator">
+                <span id="status-dot"></span>
+                <span id="status-text">DISCONNECTED</span>
+            </div>
+        </header>
+
+        <main>
+            <div class="controls">
+                <div class="input-group">
+                    <label for="pad-code">ACCESS CODE</label>
+                    <input type="text" id="pad-code" placeholder="ENTER_CODE_HERE" autocomplete="off">
+                </div>
+                <div class="actions">
+                    <button id="btn-open" class="btn cyberpunk-btn">OPEN_CHANNEL</button>
+                    <button id="btn-save" class="btn cyberpunk-btn">SAVE_DATA</button>
+                </div>
+            </div>
+
+            <div class="editor-container">
+                <textarea id="pad-content" placeholder="// Awaiting decrypted stream..." spellcheck="false"></textarea>
+                <div class="scanlines"></div>
+            </div>
+        </main>
+
+        <footer>
+            <p>SECURE TERMINAL v2.0 // NO LOGS // ZERO KNOWLEDGE</p>
+        </footer>
+    </div>
+    <script src="app.js"></script>
+</body>
+
+</html>
