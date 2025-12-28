@@ -1,4 +1,4 @@
-const API_URL = 'http://localhost:3000/api/module';
+const API_URL = '/api/module';
 
 const dom = {
     code: document.getElementById('pad-code'),
