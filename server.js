@@ -152,10 +152,13 @@ app.post('/api/module', async (req, res) => {
     }
 });
 
-// Health Check for Railway
+// Health Check for Railway/Render
 app.get('/up', (req, res) => {
     res.status(200).send('OK');
 });
+
+// Ignore Favicon
+app.get('/favicon.ico', (req, res) => res.status(204).end());
 
 // Serve index.html for root
 app.get('/', (req, res) => {
