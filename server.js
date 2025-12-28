@@ -170,6 +170,21 @@ process.on('unhandledRejection', (reason, promise) => {
     console.error('CRITICAL ERROR: Unhandled Rejection at:', promise, 'reason:', reason);
 });
 
+process.on('SIGTERM', () => {
+    console.log('DEBUG: Received SIGTERM signal. Railway is stopping the container.');
+    // Graceful shutdown could go here
+    process.exit(0);
+});
+
+// Verify Frontend File
+const fs = require('fs');
+const indexPath = path.join(__dirname, 'client', 'index.html');
+if (!fs.existsSync(indexPath)) {
+    console.error(`ERROR: Frontend file not found at ${indexPath}`);
+} else {
+    console.log(`DEBUG: Frontend found at ${indexPath}`);
+}
+
 // Start Server
 app.listen(PORT, '0.0.0.0', () => {
     console.log(`DEBUG: Server starting listen on ${PORT} (0.0.0.0)`);
