@@ -162,8 +162,16 @@ textarea {
 footer {
     margin-top: 10px;
     text-align: center;
-    font-size: 0.7rem;
+    font-size: 0.8rem;
+    /* Slightly larger for readability */
     color: #555;
+}
+
+.revengers {
+    color: var(--accent-color);
+    font-weight: bold;
+    text-shadow: 0 0 5px var(--accent-color);
+    letter-spacing: 1px;
 }
 
 /* Mobile Optimization */

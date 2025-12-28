@@ -84,3 +84,29 @@ dom.btnSave.addEventListener('click', async () => {
 
 // Init
 setStatus('READY_FOR_INPUT', 'neutral');
+
+// Helper: Update URL for sharing
+function updateUrl(code) {
+    if (code) {
+        window.location.hash = code;
+    }
+}
+
+// Check for hash on load
+window.addEventListener('load', async () => {
+    const hash = window.location.hash.substring(1); // Remove '#'
+    if (hash) {
+        dom.code.value = hash;
+        // Trigger Open
+        dom.btnOpen.click();
+    }
+});
+
+// Update URL on successful Open
+const originalSetStatus = setStatus;
+setStatus = (msg, type) => {
+    originalSetStatus(msg, type);
+    if (type === 'success' && currentCode) {
+        updateUrl(currentCode);
+    }
+};
