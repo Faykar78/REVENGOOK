@@ -4,8 +4,11 @@ const cors = require('cors');
 const bodyParser = require('body-parser');
 const path = require('path');
 
+console.log("DEBUG: App starting...");
+
 const app = express();
 const PORT = process.env.PORT || 3000;
+console.log(`DEBUG: PORT is ${PORT}`);
 
 // Middleware
 app.use(cors());
@@ -16,35 +19,44 @@ app.use(bodyParser.urlencoded({ extended: true, limit: '10mb' }));
 app.use(express.static(path.join(__dirname, 'client')));
 
 // Database Setup (PostgreSQL)
+console.log(`DEBUG: Checking DATABASE_URL... Exists: ${!!process.env.DATABASE_URL}`);
+
+let pool;
 if (!process.env.DATABASE_URL) {
     console.error("--------------------------------------------------------------------------------");
     console.error("FATAL ERROR: DATABASE_URL IS MISSING!");
     console.error("Please go to Railway -> Node Service -> Variables and add DATABASE_URL");
     console.error("--------------------------------------------------------------------------------");
-    process.exit(1); // Exit explicitly so Railway knows we failed
+    // We do NOT exit here, to see if the server can at least start.
+} else {
+    try {
+        console.log("DEBUG: Initializing PG Pool...");
+        pool = new Pool({
+            connectionString: process.env.DATABASE_URL,
+            ssl: {
+                rejectUnauthorized: false
+            }
+        });
+        console.log("DEBUG: Pool initialized.");
+
+        // Initialize DB Table
+        pool.query(`
+            CREATE TABLE IF NOT EXISTS notes (
+                id TEXT PRIMARY KEY,
+                content TEXT,
+                updatedAt BIGINT
+            )
+        `, (err, res) => {
+            if (err) {
+                console.error('DEBUG: Error creating table:', err);
+            } else {
+                console.log('DEBUG: Ensure "notes" table exists.');
+            }
+        });
+    } catch (err) {
+        console.error("DEBUG: Failed to init pool:", err);
+    }
 }
-
-const pool = new Pool({
-    connectionString: process.env.DATABASE_URL,
-    ssl: {
-        rejectUnauthorized: false
-    }
-});
-
-// Initialize DB Table
-pool.query(`
-    CREATE TABLE IF NOT EXISTS notes (
-        id TEXT PRIMARY KEY,
-        content TEXT,
-        updatedAt BIGINT
-    )
-`, (err, res) => {
-    if (err) {
-        console.error('Error creating table:', err);
-    } else {
-        console.log('Ensure "notes" table exists.');
-    }
-});
 
 // Helper to get current timestamp sentries (seconds)
 const getTimestamp = () => Math.floor(Date.now() / 1000);
@@ -52,6 +64,10 @@ const getTimestamp = () => Math.floor(Date.now() / 1000);
 // API Route for module.php simulation
 app.post('/api/module', async (req, res) => {
     const { module_act, pad_code, pad_content } = req.body;
+
+    if (!pool) {
+        return res.status(500).json({ errormessage: "Database not configured. Check server logs." });
+    }
 
     // --- CLEANUP (Lazy Expiration) ---
     // Delete any notes older than 24 hours (86400 seconds)
@@ -143,5 +159,6 @@ app.get('/', (req, res) => {
 
 // Start Server
 app.listen(PORT, () => {
+    console.log(`DEBUG: Server starting listen on ${PORT}`);
     console.log(`Server running on port ${PORT}`);
 });
