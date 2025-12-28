@@ -119,15 +119,28 @@ input:focus {
     box-shadow: 0 0 15px var(--accent-color);
 }
 
+/* Main Content Area */
+main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    /* Important for nested flex scroll */
+}
+
 /* Editor */
 .editor-container {
     flex: 1;
     position: relative;
     border: 1px solid var(--border-color);
     background: var(--terminal-bg);
+    display: flex;
+    flex-direction: column;
 }
 
 textarea {
+    flex: 1;
+    /* take all space in container */
     width: 100%;
     height: 100%;
     background: transparent;
