@@ -58,16 +58,15 @@ dom.btnOpen.addEventListener('click', async () => {
 // Action: Save Pad
 dom.btnSave.addEventListener('click', async () => {
     const content = dom.content.value;
+    const code = dom.code.value.trim();
 
-    // If no code set, try to use input
-    if (!currentCode) {
-        currentCode = dom.code.value.trim();
-    }
-
-    if (!currentCode) {
+    if (!code) {
         setStatus('ERROR: INVALID_TARGET', 'error');
         return;
     }
+
+    // Update state to match current input
+    currentCode = code;
 
     setStatus('UPLOADING_ENCRYPTED_PACKET...', 'neutral');
     const data = await apiRequest('save', {
