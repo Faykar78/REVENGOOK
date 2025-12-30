@@ -45,12 +45,13 @@ if (!process.env.DATABASE_URL) {
                 id TEXT PRIMARY KEY,
                 content TEXT,
                 updatedAt BIGINT
-            )
+            );
+            ALTER TABLE notes ADD COLUMN IF NOT EXISTS is_locked BOOLEAN DEFAULT FALSE;
         `, (err, res) => {
             if (err) {
-                console.error('DEBUG: Error creating table:', err);
+                console.error('DEBUG: Error configuring table:', err);
             } else {
-                console.log('DEBUG: Ensure "notes" table exists.');
+                console.log('DEBUG: Ensure "notes" table and schema exists.');
             }
         });
     } catch (err) {
@@ -85,7 +86,7 @@ app.post('/api/module', async (req, res) => {
 
         try {
             // Filter: Only select notes updated within the last 24 hours
-            const { rows } = await pool.query('SELECT content, updatedAt FROM notes WHERE id = $1 AND updatedAt > $2', [pad_code, cleanupCutoff]);
+            const { rows } = await pool.query('SELECT content, updatedAt, is_locked FROM notes WHERE id = $1 AND updatedAt > $2', [pad_code, cleanupCutoff]);
 
             if (rows.length > 0) {
                 // Found existing pad
@@ -95,7 +96,7 @@ app.post('/api/module', async (req, res) => {
                     neworused: 'used',
                     pad_content: rows[0].content,
                     selfdestruct_onTime: false,
-                    padlock: false,
+                    padlock: rows[0].is_locked || false,
                     linenum: false,
                     history: {}
                 });
@@ -125,8 +126,14 @@ app.post('/api/module', async (req, res) => {
         const timestamp = getTimestamp();
 
         try {
+            // Check if locked first
+            const check = await pool.query('SELECT is_locked FROM notes WHERE id = $1', [pad_code]);
+            if (check.rows.length > 0 && check.rows[0].is_locked) {
+                return res.json({ errormessage: 'LOCKED: Create a new channel or unlock this one.' });
+            }
+
             await pool.query(
-                `INSERT INTO notes (id, content, updatedAt) VALUES ($1, $2, $3)
+                `INSERT INTO notes (id, content, updatedAt, is_locked) VALUES ($1, $2, $3, FALSE)
                  ON CONFLICT (id) DO UPDATE SET content = EXCLUDED.content, updatedAt = EXCLUDED.updatedAt`,
                 [pad_code, pad_content || '', timestamp]
             );
@@ -143,6 +150,32 @@ app.post('/api/module', async (req, res) => {
         } catch (err) {
             console.error(err);
             res.json({ errormessage: 'Database error' });
+        }
+
+    } else if (module_act === 'delete') {
+        if (!pad_code) return res.json({ errormessage: 'Code is required' });
+        try {
+            await pool.query('DELETE FROM notes WHERE id = $1', [pad_code]);
+            res.json({ noerror: true, deleted: true });
+        } catch (err) {
+            console.error(err);
+            res.json({ errormessage: 'Delete failed' });
+        }
+
+    } else if (module_act === 'toggle_lock') {
+        if (!pad_code) return res.json({ errormessage: 'Code is required' });
+        try {
+            // Toggle the is_locked state
+            const result = await pool.query(`
+                INSERT INTO notes (id, content, updatedAt, is_locked) VALUES ($1, '', $2, TRUE)
+                ON CONFLICT (id) DO UPDATE SET is_locked = NOT notes.is_locked
+                RETURNING is_locked
+            `, [pad_code, getTimestamp()]);
+
+            res.json({ noerror: true, is_locked: result.rows[0].is_locked });
+        } catch (err) {
+            console.error(err);
+            res.json({ errormessage: 'Lock toggle failed' });
         }
 
     } else if (module_act === 'check_padlock_code') {

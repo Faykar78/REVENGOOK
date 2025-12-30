@@ -119,7 +119,42 @@ input:focus {
     box-shadow: 0 0 15px var(--accent-color);
 }
 
-/* Main Content Area */
+/* Secondary Actions */
+.actions-secondary {
+    display: flex;
+    gap: 10px;
+    margin-top: 10px;
+    /* Space between primary and secondary rows */
+    justify-content: flex-end;
+    /* Align to right? or match standard */
+    display: none;
+    /* Hidden by default */
+}
+
+/* Warning Button (Yellow/Orange) */
+.btn-warning {
+    border-color: #ffb700;
+    color: #ffb700;
+}
+
+.btn-warning:hover {
+    background: #ffb700;
+    color: #000;
+    box-shadow: 0 0 15px #ffb700;
+}
+
+/* Danger Button (Red) */
+.btn-danger {
+    border-color: #ff003c;
+    color: #ff003c;
+}
+
+.btn-danger:hover {
+    background: #ff003c;
+    color: #fff;
+    box-shadow: 0 0 15px #ff003c;
+}
+
 main {
     flex: 1;
     display: flex;
